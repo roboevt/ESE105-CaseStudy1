@@ -1,0 +1,1 @@
+%eparates the data into "training" and “testing” groups, uses kmeans clustering on the “training” group, and results in the construction of k centroids
