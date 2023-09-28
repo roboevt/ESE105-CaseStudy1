@@ -5,9 +5,9 @@ close all
 load('COVIDbyCounty.mat');
 
 minK = 1;  %K-means k value (number of clusters)
-maxK = 30;
+maxK = 3;
 minW = 1;  % Block average window length
-maxW = 50;
+maxW = 5;
 
 K = minK:maxK;
 W = minW:maxW;
@@ -19,7 +19,7 @@ for w = W
         A = generateBlockAverageMatrix(length(dates), w);
         transformedCovidCases = A * CNTY_COVID';
 
-        [idx, C,sumd] = kmeans(transformedCovidCases, k);
+        [idx, C, sumd] = kmeans(transformedCovidCases, k);
         cost = sum(sumd);
         costs(k-minK+1,w-minW+1) = cost;
     end
@@ -37,19 +37,9 @@ ylabel("K-means k")
 xlabel("Window Length")
 zlabel("Sum of sumd")
 
-% [idx, C,sumd] = kmeans(CNTY_COVID, 9);
-% 
-% CNTY_CENSUS.CTYNAME(idx==2)
 
-
-% Prototype idea for determinging optimal k and w.
-% for w=5:50
-%     for k=9:20
-%         data = movmean(CNTY_COVID, w)
-%         [idx, C, sumd] = kmeans(data, k);
-%         error[w,k] = cost(sumd)
-%     end
-% end
+%CNTY_CENSUS.CTYNAME(idx==2)
+%[idx, C, sumd] = kmeans(CNTY_COVID, 9);
 
 
 function A = generateBlockAverageMatrix(n, window)
