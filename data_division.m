@@ -1,3 +1,5 @@
+% NOTE Moved into cluster_covid_data.m
+
 close all
 load('COVIDbyCounty.mat'); % load data
 
