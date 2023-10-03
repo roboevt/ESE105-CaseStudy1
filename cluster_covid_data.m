@@ -51,11 +51,11 @@ testing_labels = testingCensus.DIVISION;
 
 %----------Determine optimal clustering parameters----------
 
-minK = 9;  %K-means k value (number of clusters)
-maxK = 51;
-minW = 2;  % Block average window length
-maxW = 50;
-iterations = 1000; % Average across
+minK = 1;  %K-means k value (number of clusters)
+maxK = 125;
+minW = 1;  % Block average window length
+maxW = 125;
+iterations = 2000; % Average across
 
 K = minK:maxK;
 W = minW:maxW;
