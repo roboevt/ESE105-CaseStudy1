@@ -55,16 +55,18 @@ minK = 9;  %K-means k value (number of clusters)
 maxK = 51;
 minW = 2;  % Block average window length
 maxW = 50;
-iterations = 500; % Average across
+iterations = 1000; % Average across
 
 K = minK:maxK;
 W = minW:maxW;
 
-scores = zeros(maxK-minK+1, maxW);
+scores = zeros(maxK, maxW, iterations);
+trainingDivisions = trainingCensus.DIVISION;
 
-
+parpool(24);
 for w = W
-    for k = K
+    tic
+    parfor k = K % Parallel for loop to significantly decrease runtime.
         rng(w * k);
         % Transform training and test data based on window length
         A = generateBlockAverageMatrix(length(dates), w);
@@ -79,26 +81,25 @@ for w = W
             centroid_labels = zeros(k,1);
             for centroid = 1:k
                 cluster = centroidIdx == centroid;
-                centroid_labels(centroid) = mode(trainingCensus.DIVISION(cluster));
+                centroid_labels(centroid) = mode(trainingDivisions(cluster));
             end
             
             % Save score
             score = checkTestResult(centroids, centroid_labels, testing_labels, transformedTestingCases);
-            scores(k-minK+1,w) = scores(k-minK+1,w) + score;
+            % scores(k-minK+1,w) = scores(k-minK+1,w) + score;
+            scores(k, w, i) = score;
         end       
     end
+    toc
     disp(w + "/" + maxW);
 end
-scores = scores./iterations;
+scores = mean(scores, 3);
 
 %----------Plot Results----------
 
 fontSize = 28;
 
-bar3(K, scores)
-
-set(gca,'XTick', W)
-set(gca,'YTick', K)
+bar3(scores)
 
 title("Score Across Various K Values and Window Lengths", 'FontSize', fontSize + 12)
 xlabel("Window Length", 'FontSize', fontSize)
@@ -107,6 +108,8 @@ zlabel("Score", "FontSize", fontSize)
 
 xlim([W(1)-0.5, W(end)+0.5])
 set(gca, 'XTick', W)
+ylim([K(1)-0.5, K(end)+0.5])
+set(gca, 'YTick', K)
 
 %----------Save Results----------
 
@@ -124,6 +127,7 @@ for centroid = 1:bestK
     cluster = centroidIdx == centroid;
     centroid_labels(centroid) = mode(trainingCensus.DIVISION(cluster));
 end
+
 
 %---------Utility Functions---------
 
