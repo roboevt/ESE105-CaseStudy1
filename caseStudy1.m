@@ -72,6 +72,19 @@ rNorm = vecnorm(r,2,2); % Calculate norm of r
 % from each divison). r_i norm is the Euclidian distance between St. Louis 
 % city cases vector and d_i (from each division)
 
+
+
+
+
+function A = generateBlockAverageMatrix(n, window)
+    block = ones(1,window)/window;
+    A=zeros(n-window,n);
+    for i = 1:n-window+1
+        row = [zeros(1,i-1), block, zeros(1,n-i-window+1)];
+        A(i,:) = row;
+    end
+end
+
 % Function Definitions:
 
 % Find the most populus county in each division and return it's name and weekly covid cases.

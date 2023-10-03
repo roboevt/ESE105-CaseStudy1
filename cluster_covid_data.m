@@ -23,7 +23,7 @@ for i = 1 : 9
 end
 disp("Every division has at least " + minDivisionCount + " counties");
 
-test = 5; % How any test samples (removed from training)
+test = 9; % How any test samples from each division (removed from training)
 for div = 1 : 9
     for i = 1 : test
         % find a random number from 1 to 25 - (i - 1)
@@ -51,29 +51,30 @@ testing_labels = testingCensus.DIVISION;
 
 %----------Determine optimal clustering parameters----------
 
-minK = 1;  %K-means k value (number of clusters)
-maxK = 25;
-minW = 1;  % Block average window length
-maxW = 25;
-iterations = 10; % Average across
+minK = 9;  %K-means k value (number of clusters)
+maxK = 51;
+minW = 2;  % Block average window length
+maxW = 50;
+iterations = 500; % Average across
 
 K = minK:maxK;
 W = minW:maxW;
 
-scores = zeros(maxK-minK+1, maxW-minW+1);
+scores = zeros(maxK-minK+1, maxW);
 
-for i = 1:iterations
-    rng(i);
-    for w = W
-        for k = K
-            % Transform training and test data based on window length
-            A = generateBlockAverageMatrix(length(dates), w);
-            transformedTrainingCases = (A * trainingCases')';
-            transformedTestingCases = (A * testingCases')';
 
+for w = W
+    for k = K
+        rng(w * k);
+        % Transform training and test data based on window length
+        A = generateBlockAverageMatrix(length(dates), w);
+        transformedTrainingCases = (A * trainingCases')';
+        transformedTestingCases = (A * testingCases')';
+
+        for i = 1:iterations
             % Run k-means with current k value
             [centroidIdx, centroids] = kmeans(transformedTrainingCases, k);
-            
+          
             % Label centroids based on most common division within their cluster
             centroid_labels = zeros(k,1);
             for centroid = 1:k
@@ -83,27 +84,29 @@ for i = 1:iterations
             
             % Save score
             score = checkTestResult(centroids, centroid_labels, testing_labels, transformedTestingCases);
-            scores(k-minK+1,w-minW+1) = scores(k-minK+1,w-minW+1) + score;
-        end
+            scores(k-minK+1,w) = scores(k-minK+1,w) + score;
+        end       
     end
-    % Display current iteration to predict runtime
-    disp(i + "/" + iterations);
+    disp(w + "/" + maxW);
 end
 scores = scores./iterations;
 
 %----------Plot Results----------
 
-fontSize = 24
+fontSize = 28;
 
-bar3(scores)
+bar3(K, scores)
 
 set(gca,'XTick', W)
 set(gca,'YTick', K)
 
-title("Score Across Various K Values and Window Lengths", 'FontSize', 36)
-xlabel("Window Length", 'FontSize', 18)
-ylabel("Clusters", 'FontSize', 18)
-zlabel("Score", "FontSize", 18)
+title("Score Across Various K Values and Window Lengths", 'FontSize', fontSize + 12)
+xlabel("Window Length", 'FontSize', fontSize)
+ylabel("Clusters", 'FontSize', fontSize)
+zlabel("Score", "FontSize", fontSize)
+
+xlim([W(1)-0.5, W(end)+0.5])
+set(gca, 'XTick', W)
 
 %----------Save Results----------
 
