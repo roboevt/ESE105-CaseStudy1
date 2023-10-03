@@ -20,12 +20,15 @@ end
 %Manually Checking
 %sortCNTY = sortrows(CNTY_CENSUS, 6, "descend");
 
+A = generateBlockAverageMatrix(156, 10);
+maxPopulationCovidCases = (A * maxPopulationCovidCases')';
+
 % Plot Data
-plot(dates, maxPopulationCovidCases');
-title("Weekly Covid Cases for Most Populus County in Each Divisions of the United States")
-xlabel("Time")
-ylabel("Cases")
-legend(maxPopulationCntys);
+plot(dates(1:end-9), maxPopulationCovidCases');
+title("Weekly Covid Cases for Most Populus County in Each Divisions of the United States (Averaged over 10 entries)", 'FontSize', 32)
+xlabel("Time", 'FontSize', 28)
+ylabel("Cases", 'FontSize', 28)
+legend(maxPopulationCntys, 'FontSize',28);
 
 % 3.1.2 Linearly Independent?
 
