@@ -2,6 +2,7 @@
 % on the “training” group, and results in the construction of k centroids
 
 %----------Load Data----------
+
 close all
 load('COVIDbyCounty.mat');
 
@@ -51,11 +52,11 @@ testing_labels = testingCensus.DIVISION;
 
 %----------Determine optimal clustering parameters----------
 
-minK = 1;  %K-means k value (number of clusters)
-maxK = 125;
-minW = 1;  % Block average window length
-maxW = 125;
-iterations = 1000; % Average across
+minK = 9;  %K-means k value (number of clusters)
+maxK = 51;
+minW = 2;  % Block average window length
+maxW = 20;
+iterations = 1000; % Average across (takes 16 minutes on my machine, reduce for faster runtime)
 
 K = minK:maxK;
 W = minW:maxW;
@@ -66,13 +67,14 @@ trainingDivisions = trainingCensus.DIVISION;
 parpool(24);
 for w = W
     tic
-    parfor k = K % Parallel for loop to significantly decrease runtime.
+    parfor k = K % Parallel for loop here significantly decreases runtime
         rng(w * k);
         % Transform training and test data based on window length
         A = generateBlockAverageMatrix(length(dates), w);
         transformedTrainingCases = (A * trainingCases')';
         transformedTestingCases = (A * testingCases')';
-
+        
+        % Average across k-means randomness
         for i = 1:iterations
             % Run k-means with current k value
             [centroidIdx, centroids] = kmeans(transformedTrainingCases, k);
@@ -101,7 +103,7 @@ fontSize = 28;
 
 bar3(scores)
 
-title("Score Across Various K Values and Window Lengths", 'FontSize', fontSize + 12)
+title("Score Across K Values and Window Lengths", 'FontSize', fontSize + 12)
 xlabel("Window Length", 'FontSize', fontSize)
 ylabel("Clusters", 'FontSize', fontSize)
 zlabel("Score", "FontSize", fontSize)
@@ -122,11 +124,6 @@ transformedTrainingCases = (A * trainingCases')';
 
 [centroidIdx, centroids, sumd] = kmeans(transformedTrainingCases, bestK(1));
             
-centroid_labels = zeros(bestK,1);
-for centroid = 1:bestK
-    cluster = centroidIdx == centroid;
-    centroid_labels(centroid) = mode(trainingCensus.DIVISION(cluster));
-end
 
 
 %---------Utility Functions---------
