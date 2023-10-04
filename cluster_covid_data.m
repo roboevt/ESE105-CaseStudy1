@@ -74,7 +74,7 @@ for w = W
         transformedTrainingCases = (A * trainingCases')';
         transformedTestingCases = (A * testingCases')';
         
-        % Average across k-means randomness
+        % Average to remove k-means randomness
         for i = 1:iterations
             % Run k-means with current k value
             [centroidIdx, centroids] = kmeans(transformedTrainingCases, k);
@@ -92,6 +92,8 @@ for w = W
             scores(k, w, i) = score;
         end       
     end
+
+    %Log progreess to console
     toc
     disp(w + "/" + maxW);
 end
@@ -99,11 +101,11 @@ scores = mean(scores, 3);
 
 %----------Plot Results----------
 
-fontSize = 16;
+fontSize = 24;
 
 bar3(scores)
 
-title("Score Across K Values and Window Lengths", 'FontSize', fontSize + 2)
+title("Score Across K Values and Window Lengths", 'FontSize', fontSize + 6)
 xlabel("Window Length", 'FontSize', fontSize)
 ylabel("Clusters", 'FontSize', fontSize)
 zlabel("Score", "FontSize", fontSize)
@@ -122,9 +124,19 @@ disp("Using a window length of " + bestW + " and " + bestK + " clusters.")
 A = generateBlockAverageMatrix(length(dates), bestW(1));
 transformedTrainingCases = (A * trainingCases')';
 
+% Perform Clustering
 [centroidIdx, centroids, sumd] = kmeans(transformedTrainingCases, bestK(1));
-            
 
+% Create the centroid labels based on the most common division in each
+% cluster
+centroid_labels = zeros(bestK,1);
+for centroid = 1:bestK
+    cluster = centroidIdx == centroid;
+    centroid_labels(centroid) = mode(trainingCensus.DIVISION(cluster));
+    disp("Centroid " + centroid + " assigned to division " + centroid_labels(centroid))
+end
+            
+save("competition.mat", "centroids", "centroid_labels", "A");
 
 %---------Utility Functions---------
 
